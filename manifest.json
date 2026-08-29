@@ -1,0 +1,19 @@
+{
+  "name": "FACT MATRIX - 一次情報・ファクトベース世界情勢＆経済ダッシュボード",
+  "short_name": "FACT MATRIX",
+  "description": "報道機関の主観的論評を排し、世界銀行、中央銀行、財務省、公的通信社の一次情報のみを集約するインテリジェンス・ターミナル",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#060a12",
+  "theme_color": "#0b1322",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity", "news"]
+}

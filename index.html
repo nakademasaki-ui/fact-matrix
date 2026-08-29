@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FACT MATRIX | 一次情報・ファクトベース世界情勢＆経済ダッシュボード</title>
+  <meta name="description" content="報道のバイアスや論評を排し、世界銀行、各国中央銀行、主要証券取引所、各国財務省、主要国際通信社（ロイター、新華社、タス、共同等）、国連公式記録の一次公表データのみを直接集約・可視化するファクトベースのインテリジェンス・ダッシュボード。">
+  <meta name="keywords" content="一次情報, 経済指標, 国家バランスシート, 世界主要報道, 通信社, 株式市場, 中央銀行, 破綻確率, 政策金利, 国連決議, 世界銀行API, ファクトベース">
+
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1322">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FACT MATRIX">
+  <link rel="apple-touch-icon" href="icons/icon-512.svg">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-512.svg">
+
+  <!-- Google Fonts: Inter, Outfit, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <!-- Live Clocks & API Status Ticker -->
+    <div class="header-top-bar">
+      <div class="world-clocks">
+        <span class="clock-item" id="clock-utc">--:--:-- UTC</span>
+        <span class="clock-item" id="clock-tyo">--:--:-- TYO</span>
+        <span class="clock-item" id="clock-lon">--:--:-- LON</span>
+        <span class="clock-item" id="clock-nyc">--:--:-- NYC</span>
+      </div>
+      <div class="api-connectivity">
+        <span class="status-dot" id="api-status-dot"></span>
+        <span id="api-status-text">World Bank API 接続検証中...</span>
+      </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <div class="header-main">
+      <div class="brand-area">
+        <div class="brand-logo">
+          <i data-lucide="compass"></i>
+        </div>
+        <div class="brand-title">
+          <h1>FACT MATRIX <span class="brand-badge">Primary Only</span></h1>
+          <p>報道非依存・国際機関一次データ直接連動ターミナル</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist">
+        <a href="#overview" class="nav-tab active" data-nav="overview">
+          <i data-lucide="layout-dashboard"></i> 総合ファクト
+        </a>
+        <a href="#news" class="nav-tab" data-nav="news">
+          <i data-lucide="radio"></i> 世界主要報道・通信社
+        </a>
+        <a href="#sovereign" class="nav-tab" data-nav="sovereign">
+          <i data-lucide="building-2"></i> 国家バランスシート
+        </a>
+        <a href="#stocks" class="nav-tab" data-nav="stocks">
+          <i data-lucide="trending-up"></i> 株式市場・指数
+        </a>
+        <a href="#balancesheet" class="nav-tab" data-nav="balancesheet">
+          <i data-lucide="layers"></i> 中銀バランスシート・QT
+        </a>
+        <a href="#macro" class="nav-tab" data-nav="macro">
+          <i data-lucide="landmark"></i> 政策金利・マクロ
+        </a>
+        <a href="#charts" class="nav-tab" data-nav="charts">
+          <i data-lucide="line-chart"></i> 世銀時系列分析
+        </a>
+        <a href="#geopolitics" class="nav-tab" data-nav="geopolitics">
+          <i data-lucide="scale"></i> 国連決議・条約台帳
+        </a>
+        <a href="#methodology" class="nav-tab" data-nav="methodology">
+          <i data-lucide="shield-check"></i> 原則・データソース
+        </a>
+      </nav>
+
+      <div class="header-right-actions">
+        <div class="header-search">
+          <i data-lucide="search"></i>
+          <input type="text" id="global-fact-search" placeholder="国名 / ISO (Enter)...">
+        </div>
+        <button class="btn btn-pwa-install" id="pwa-install-btn" title="スマホ・PCにアプリとしてインストール">
+          <i data-lucide="smartphone"></i> <span>アプリ追加</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Stats Bar -->
+  <section class="quick-stats-bar">
+    <div class="quick-stat-card">
+      <div class="stat-icon-badge">
+        <i data-lucide="radio"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">世界主要報道 収集バランス</span>
+        <span class="stat-val" style="color: var(--accent-cyan);">5大極 網羅</span>
+        <span class="stat-sub">西側・中東・中・露・アジア通信社</span>
+      </div>
+    </div>
+
+    <div class="quick-stat-card">
+      <div class="stat-icon-badge">
+        <i data-lucide="shield-check"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">日本 5年以内破綻確率</span>
+        <span class="stat-val" style="color: var(--accent-emerald);">1.81% (世界4位)</span>
+        <span class="stat-sub">ソブリンCDS市場推計値</span>
+      </div>
+    </div>
+
+    <div class="quick-stat-card">
+      <div class="stat-icon-badge">
+        <i data-lucide="building-2"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">日本の国家保有 金融資産</span>
+        <span class="stat-val" style="color: var(--accent-cyan);">¥536.4 兆</span>
+        <span class="stat-sub">GPIF・外貨準備等 (財務省連結)</span>
+      </div>
+    </div>
+
+    <div class="quick-stat-card">
+      <div class="stat-icon-badge">
+        <i data-lucide="file-check"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">データ選定基準</span>
+        <span class="stat-val" style="color: var(--accent-cyan); font-size: 15px;">Zero-Editorial</span>
+        <span class="stat-sub">記事・論評の完全排除</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main View Container -->
+  <main class="main-container" id="main-content">
+    <!-- Rendered dynamically by js/app.js -->
+  </main>
+
+  <!-- PWA Install Guidance Modal -->
+  <div id="pwa-modal-backdrop" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="country-modal-title">
+          <div class="brand-logo" style="width: 32px; height: 32px;">
+            <i data-lucide="smartphone"></i>
+          </div>
+          <div>
+            <h3>FACT MATRIX をアプリとして追加</h3>
+            <p class="subtitle">ホーム画面に直接インストールして全画面で快適に利用できます</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="pwa-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="pwa-instructions-grid">
+          <div class="pwa-device-box">
+            <div class="pwa-device-header">
+              <span class="flag-icon">🍎</span>
+              <strong>iPhone / iPad (Safari)</strong>
+            </div>
+            <ol class="pwa-steps-list">
+              <li>Safariの画面下部にある <strong>「共有アイコン <i data-lucide="share" style="width: 14px; height: 14px; vertical-align: middle;"></i>」</strong> をタップ</li>
+              <li>メニューをスクロールして <strong>「ホーム画面に追加」</strong> をタップ</li>
+              <li>右上の <strong>「追加」</strong> をタップすると、ホーム画面にアプリアイコンが作成されます</li>
+            </ol>
+          </div>
+
+          <div class="pwa-device-box">
+            <div class="pwa-device-header">
+              <span class="flag-icon">🤖</span>
+              <strong>Android (Chrome) / PC (Chrome, Edge)</strong>
+            </div>
+            <ol class="pwa-steps-list">
+              <li>下の <strong>「今すぐインストール」</strong> ボタンをタップ</li>
+              <li>またはブラウザメニュー（縦の3点リーダー）から <strong>「アプリをインストール」</strong> を選択</li>
+            </ol>
+            <button class="btn btn-primary" id="pwa-prompt-trigger-btn" style="width: 100%; margin-top: 10px; justify-content: center;">
+              <i data-lucide="download"></i> 今すぐインストール
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="pwa-modal-dismiss-btn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Script (ES Module) -->
+  <script type="module" src="js/app.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
