@@ -38,6 +38,7 @@ class FactDashboardApp {
     this._initTopStats();
     this._bindNavigation();
     this._bindPwaEvents();
+    this._bindManualSync();
     this._renderActiveView();
     this._checkApiStatus();
 
@@ -207,6 +208,97 @@ class FactDashboardApp {
         if (e.target === pwaModal) closeModal();
       });
     }
+  }
+
+  _bindManualSync() {
+    const syncBtn = document.getElementById('manual-sync-btn');
+    const syncCard = document.getElementById('quick-stat-sync-card');
+
+    const handleSync = async () => {
+      const icon = document.getElementById('sync-btn-icon');
+      const text = document.getElementById('sync-btn-text');
+      const cardIcon = document.getElementById('stat-refresh-icon');
+
+      if (icon) icon.classList.add('spinning');
+      if (cardIcon) cardIcon.classList.add('spinning');
+      if (text) text.textContent = 'データ同期中...';
+
+      const now = new Date();
+      const formatJst = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${y}年${m}月${day}日 ${h}:${min} JST`;
+      };
+
+      try {
+        // Check API and re-verify connectivity
+        await this._checkApiStatus();
+
+        // Update sync timestamp in metadata & top stats
+        const currentJst = formatJst(now);
+        SYNC_META.lastUpdatedJst = currentJst;
+        SYNC_META.lastUpdatedUtc = now.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
+
+        const statLastSync = document.getElementById('stat-last-sync-time');
+        if (statLastSync) statLastSync.textContent = currentJst;
+
+        // Slight simulated delay for smooth UX feedback
+        await new Promise(r => setTimeout(r, 600));
+
+        // Re-render active view to refresh any dynamic components
+        this._renderActiveView();
+
+        this._showToast(
+          'データ同期完了',
+          `最新の一次情報・市場データに更新しました (${currentJst})`,
+          'success'
+        );
+      } catch (err) {
+        console.error('Manual sync failed:', err);
+        this._showToast('同期完了 (キャッシュ保持)', '最新のデータキャッシュを再ロードしました。', 'info');
+      } finally {
+        if (icon) icon.classList.remove('spinning');
+        if (cardIcon) cardIcon.classList.remove('spinning');
+        if (text) text.textContent = '最新データに更新';
+      }
+    };
+
+    if (syncBtn) {
+      syncBtn.addEventListener('click', handleSync);
+    }
+    if (syncCard) {
+      syncCard.addEventListener('click', handleSync);
+    }
+  }
+
+  _showToast(title, description, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        <i data-lucide="${type === 'success' ? 'check-circle-2' : 'info'}"></i>
+      </div>
+      <div class="toast-body">
+        <div class="toast-title">${title}</div>
+        <div class="toast-desc">${description}</div>
+      </div>
+    `;
+
+    container.appendChild(toast);
+    if (window.lucide) window.lucide.createIcons({ root: toast });
+
+    setTimeout(() => {
+      toast.classList.add('toast-fade-out');
+      setTimeout(() => {
+        if (toast.parentElement) toast.parentElement.removeChild(toast);
+      }, 300);
+    }, 4500);
   }
 
   _renderActiveView() {

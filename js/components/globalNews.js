@@ -35,6 +35,9 @@ export class GlobalNewsComponent {
                 <i data-lucide="split"></i> 同一テーマ 多極視点対比
               </button>
             </div>
+            <button class="btn btn-sm btn-outline-cyan" id="news-refresh-trigger" title="通信社一次速報を最新取得">
+              <i data-lucide="refresh-cw"></i> <span>最新化</span>
+            </button>
           </div>
         </div>
 
@@ -204,6 +207,15 @@ export class GlobalNewsComponent {
         this.render();
       });
     });
+
+    // News refresh trigger
+    const newsRefresh = this.container.querySelector('#news-refresh-trigger');
+    if (newsRefresh) {
+      newsRefresh.addEventListener('click', () => {
+        const globalSyncBtn = document.getElementById('manual-sync-btn');
+        if (globalSyncBtn) globalSyncBtn.click();
+      });
+    }
 
     // Bloc filter buttons
     this.container.querySelectorAll('[data-bloc]').forEach(btn => {

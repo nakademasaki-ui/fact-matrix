@@ -163,7 +163,7 @@ def main():
             'flag': '🇯🇵',
             'category': 'Economy & Trade',
             'categoryJa': '経済・外交',
-            'feedUrl': 'https://www3.nhk.or.jp/nhkworld/en/news/feed/',
+            'feedUrl': 'https://www.nhk.or.jp/rss/news/cat0.xml',
             'defaultUrl': 'https://nordot.app/kyodo',
             'domain': 'kyodo.co.jp',
             'sourceRef': 'NHK / Kyodo Wire Feed'

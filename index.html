@@ -94,6 +94,9 @@
       </nav>
 
       <div class="header-right-actions">
+        <button class="btn btn-refresh-sync" id="manual-sync-btn" title="最新の国際一次情報・市場データを手動取得して更新">
+          <i data-lucide="refresh-cw" id="sync-btn-icon"></i> <span id="sync-btn-text">最新データに更新</span>
+        </button>
         <div class="header-search">
           <i data-lucide="search"></i>
           <input type="text" id="global-fact-search" placeholder="国名 / ISO (Enter)...">
@@ -107,12 +110,15 @@
 
   <!-- Quick Stats Bar -->
   <section class="quick-stats-bar">
-    <div class="quick-stat-card">
+    <div class="quick-stat-card quick-stat-clickable" id="quick-stat-sync-card" title="クリックして最新データを手動更新">
       <div class="stat-icon-badge">
-        <i data-lucide="refresh-cw"></i>
+        <i data-lucide="refresh-cw" id="stat-refresh-icon"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">最新データ同期日時</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="stat-label">最新データ同期日時</span>
+          <span class="badge-sync-now">今すぐ更新 ↺</span>
+        </div>
         <span class="stat-val" id="stat-last-sync-time" style="color: var(--accent-cyan); font-size: 14px;">--</span>
         <span class="stat-sub" id="stat-sync-sub">GitHub Actions 6時間おき自動巡回中</span>
       </div>
@@ -206,6 +212,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- App Script (ES Module) -->
   <script type="module" src="js/app.js"></script>
