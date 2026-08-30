@@ -1,5 +1,5 @@
 // Service Worker for FACT MATRIX PWA
-const CACHE_NAME = 'fact-matrix-v1.0.0';
+const CACHE_NAME = 'fact-matrix-v1.1.0';
 
 const STATIC_ASSETS = [
   './',
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   './manifest.json',
   './icons/icon-512.svg',
   './js/app.js',
+  './js/data/syncMeta.js',
   './js/data/countries.js',
   './js/data/centralBanks.js',
   './js/data/stockMarkets.js',
@@ -32,14 +33,15 @@ const STATIC_ASSETS = [
 
 // Install Event
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate Event
+// Activate Event - purge old caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -54,29 +56,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event (Stale-while-revalidate for local assets, Network-first for APIs)
+// Fetch Event: Network-First with Cache Fallback for instant updates
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // If external API (World Bank, etc.), try network first, then cache
-  if (url.origin !== self.location.origin) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // Local Static Assets: Cache first, fallback to network
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request);
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
+
