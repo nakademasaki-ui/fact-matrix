@@ -11,6 +11,7 @@ import { GlobalNewsComponent } from './components/globalNews.js';
 import { CountryDetailModal } from './components/countryDetail.js';
 import { SourceInspectorModal } from './components/sourceInspector.js';
 import { CENTRAL_BANK_RATES } from './data/centralBanks.js';
+import { SYNC_META } from './data/syncMeta.js';
 
 class FactDashboardApp {
   constructor() {
@@ -82,10 +83,14 @@ class FactDashboardApp {
     const statMedian = document.getElementById('stat-median-rate');
     const statCpi = document.getElementById('stat-avg-cpi');
     const statCbCount = document.getElementById('stat-cb-count');
+    const statLastSync = document.getElementById('stat-last-sync-time');
+    const syncStatusText = document.getElementById('sync-status-text');
 
     if (statMedian) statMedian.textContent = `${medianRate.toFixed(2)}%`;
     if (statCpi) statCpi.textContent = `${avgCpi}%`;
     if (statCbCount) statCbCount.textContent = `${CENTRAL_BANK_RATES.length}機関`;
+    if (statLastSync && SYNC_META) statLastSync.textContent = SYNC_META.lastUpdatedJst || SYNC_META.lastUpdatedUtc;
+    if (syncStatusText && SYNC_META) syncStatusText.textContent = `データ自動巡回: 稼働中 (${SYNC_META.syncIntervalHours || 6}時間間隔)`;
   }
 
   async _checkApiStatus() {

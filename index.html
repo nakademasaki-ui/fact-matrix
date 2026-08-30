@@ -43,6 +43,9 @@
         <span class="clock-item" id="clock-nyc">--:--:-- NYC</span>
       </div>
       <div class="api-connectivity">
+        <span class="status-dot online" id="sync-status-dot"></span>
+        <span id="sync-status-text">自動同期: 接続中...</span>
+        <span class="status-divider">|</span>
         <span class="status-dot" id="api-status-dot"></span>
         <span id="api-status-text">World Bank API 接続検証中...</span>
       </div>
@@ -106,12 +109,12 @@
   <section class="quick-stats-bar">
     <div class="quick-stat-card">
       <div class="stat-icon-badge">
-        <i data-lucide="radio"></i>
+        <i data-lucide="refresh-cw"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-label">世界主要報道 収集バランス</span>
-        <span class="stat-val" style="color: var(--accent-cyan);">5大極 網羅</span>
-        <span class="stat-sub">西側・中東・中・露・アジア通信社</span>
+        <span class="stat-label">最新データ同期日時</span>
+        <span class="stat-val" id="stat-last-sync-time" style="color: var(--accent-cyan); font-size: 14px;">--</span>
+        <span class="stat-sub" id="stat-sync-sub">GitHub Actions 6時間おき自動巡回中</span>
       </div>
     </div>
 

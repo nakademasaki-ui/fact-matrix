@@ -135,6 +135,11 @@ code, pre, .monospace {
   font-family: var(--font-mono);
 }
 
+.status-divider {
+  color: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;
