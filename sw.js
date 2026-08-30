@@ -1,5 +1,5 @@
 // Service Worker for FACT MATRIX PWA
-const CACHE_NAME = 'fact-matrix-v1.1.0';
+const CACHE_NAME = 'fact-matrix-v1.2.0';
 
 const STATIC_ASSETS = [
   './',
