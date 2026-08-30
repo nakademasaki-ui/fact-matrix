@@ -218,85 +218,8 @@ class FactDashboardApp {
   }
 
   _bindManualSync() {
-    const syncBtn = document.getElementById('manual-sync-btn');
-    const syncCard = document.getElementById('quick-stat-sync-card');
-
-    const handleSync = async () => {
-      const icon = document.getElementById('sync-btn-icon');
-      const text = document.getElementById('sync-btn-text');
-      const cardIcon = document.getElementById('stat-refresh-icon');
-
-      if (icon) icon.classList.add('spinning');
-      if (cardIcon) cardIcon.classList.add('spinning');
-      if (text) text.textContent = '同期中...';
-
-      const now = new Date();
-      const formatJst = (d) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const h = String(d.getHours()).padStart(2, '0');
-        const min = String(d.getMinutes()).padStart(2, '0');
-        const sec = String(d.getSeconds()).padStart(2, '0');
-        return `${y}年${m}月${day}日 ${h}:${min}:${sec} JST`;
-      };
-
-      try {
-        // 1. Live market tick update (simulate real-time market delta for immediate visual feedback)
-        GLOBAL_INDICES.forEach(idx => {
-          const deltaPct = (Math.random() * 0.4 - 0.2); // ±0.2% live tick
-          idx.currentLevel = +(idx.currentLevel * (1 + deltaPct / 100)).toFixed(2);
-          idx.ytdReturn = +(idx.ytdReturn + (deltaPct * 0.05)).toFixed(2);
-        });
-
-        // 2. Fast check of API status (non-blocking)
-        await this._checkApiStatus();
-
-        // 3. Update sync timestamp in metadata & top stats
-        const currentJst = formatJst(now);
-        SYNC_META.lastUpdatedJst = currentJst;
-        SYNC_META.lastUpdatedUtc = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
-
-        const statLastSync = document.getElementById('stat-last-sync-time');
-        if (statLastSync) statLastSync.textContent = currentJst;
-
-        // 4. Re-render active view instantly with new numbers
-        this._renderActiveView();
-
-        // 5. Success state feedback on button
-        if (text) text.textContent = '✅ 最新化完了！';
-        if (syncBtn) syncBtn.style.borderColor = 'var(--accent-emerald)';
-
-        // 6. Show toast
-        this._showToast(
-          '全データ同期完了',
-          `株式市場8指数・通信社報道12件・中銀データを最新化しました (${currentJst})`,
-          'success'
-        );
-      } catch (err) {
-        console.warn('Manual sync completed with cached data:', err);
-        this._showToast('同期完了', '最新のデータキャッシュを適用しました。', 'info');
-      } finally {
-        // Stop spinning immediately (0.3s)
-        setTimeout(() => {
-          if (icon) icon.classList.remove('spinning');
-          if (cardIcon) cardIcon.classList.remove('spinning');
-        }, 300);
-
-        // Reset button label after 1.5s
-        setTimeout(() => {
-          if (text) text.textContent = '最新データに更新';
-          if (syncBtn) syncBtn.style.borderColor = '';
-        }, 1800);
-      }
-    };
-
-    if (syncBtn) {
-      syncBtn.addEventListener('click', handleSync);
-    }
-    if (syncCard) {
-      syncCard.addEventListener('click', handleSync);
-    }
+    // Sync is handled by inline window.performFastSync() in index.html
+    // Do NOT add addEventListener here - it causes duplicate handlers and infinite spinner
   }
 
   _showToast(title, description, type = 'info') {
