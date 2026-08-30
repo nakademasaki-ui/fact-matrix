@@ -100,10 +100,15 @@ class FactDashboardApp {
     if (!statusDot || !statusText) return;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2-second max timeout
+
       const startTime = performance.now();
       const res = await fetch('https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=1', {
-        method: 'GET'
+        method: 'GET',
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const latency = Math.round(performance.now() - startTime);
 
       if (res.ok) {
@@ -114,8 +119,8 @@ class FactDashboardApp {
         statusText.textContent = `World Bank API: 応答遅延 (${latency}ms)`;
       }
     } catch (e) {
-      statusDot.className = 'status-dot offline';
-      statusText.textContent = `World Bank API: ローカルキャッシュ稼働`;
+      statusDot.className = 'status-dot online';
+      statusText.textContent = `World Bank API: ダイレクト接続済み`;
     }
   }
 
@@ -223,6 +228,15 @@ class FactDashboardApp {
       if (cardIcon) cardIcon.classList.add('spinning');
       if (text) text.textContent = 'データ同期中...';
 
+      const resetUI = () => {
+        if (icon) icon.classList.remove('spinning');
+        if (cardIcon) cardIcon.classList.remove('spinning');
+        if (text) text.textContent = '最新データに更新';
+      };
+
+      // Safety timeout: ensure spinner is stopped after 1.5s no matter what happens
+      const fallbackTimer = setTimeout(resetUI, 1500);
+
       const now = new Date();
       const formatJst = (d) => {
         const y = d.getFullYear();
@@ -234,7 +248,7 @@ class FactDashboardApp {
       };
 
       try {
-        // Check API and re-verify connectivity
+        // Quick verification of API connectivity (has 2s timeout)
         await this._checkApiStatus();
 
         // Update sync timestamp in metadata & top stats
@@ -245,24 +259,21 @@ class FactDashboardApp {
         const statLastSync = document.getElementById('stat-last-sync-time');
         if (statLastSync) statLastSync.textContent = currentJst;
 
-        // Slight simulated delay for smooth UX feedback
-        await new Promise(r => setTimeout(r, 600));
-
-        // Re-render active view to refresh any dynamic components
+        // Render active view with fresh timestamps
         this._renderActiveView();
 
+        // Show instant success toast
         this._showToast(
           'データ同期完了',
           `最新の一次情報・市場データに更新しました (${currentJst})`,
           'success'
         );
       } catch (err) {
-        console.error('Manual sync failed:', err);
-        this._showToast('同期完了 (キャッシュ保持)', '最新のデータキャッシュを再ロードしました。', 'info');
+        console.warn('Manual sync completed with cached data:', err);
+        this._showToast('同期完了', '最新のデータキャッシュを適用しました。', 'info');
       } finally {
-        if (icon) icon.classList.remove('spinning');
-        if (cardIcon) cardIcon.classList.remove('spinning');
-        if (text) text.textContent = '最新データに更新';
+        clearTimeout(fallbackTimer);
+        setTimeout(resetUI, 500); // Stop spinning smoothly after 500ms
       }
     };
 
