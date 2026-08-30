@@ -21,8 +21,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css">
+  <!-- Stylesheet (Cache-Busted) -->
+  <link rel="stylesheet" href="css/style.css?v=2.0.0">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -216,29 +216,27 @@
   <!-- Toast Notification -->
   <div id="toast-container" class="toast-container"></div>
 
-  <!-- App Script (ES Module) -->
-  <script type="module" src="js/app.js"></script>
+  <!-- Force Cache Busting App Script -->
+  <script type="module" src="js/app.js?v=2.0.0"></script>
 
-  <!-- Service Worker Registration with Automatic Update Check -->
+  <!-- Complete Cache Purge & Service Worker Reset Script -->
   <script>
+    // 1. Force unregister all old Service Workers to clear stale freeze
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => {
-            console.log('PWA Service Worker registered:', reg.scope);
-            reg.onupdatefound = () => {
-              const installingWorker = reg.installing;
-              if (installingWorker) {
-                installingWorker.onstatechange = () => {
-                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('New content is available; please refresh.');
-                    window.location.reload();
-                  }
-                };
-              }
-            };
-          })
-          .catch(err => console.log('Service Worker registration failed:', err));
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log('Unregistered stale service worker');
+        }
+      });
+    }
+    // 2. Clear all browser cache storages
+    if ('caches' in window) {
+      caches.keys().then(keys => {
+        keys.forEach(key => {
+          caches.delete(key);
+          console.log('Purged cache:', key);
+        });
       });
     }
   </script>
