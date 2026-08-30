@@ -116,9 +116,11 @@ def fetch_all_stock_prices(stock_indices):
 # ==================== FRED API Integration ====================
 FRED_API_KEY = os.environ.get('FRED_API_KEY', '265d5eb3ad0d2fdc2484aa22d451102b')
 
-def fetch_fred_latest(series_id):
-    """Fetch the latest observation from FRED API."""
+def fetch_fred_latest(series_id, units=None):
+    """Fetch the latest observation from FRED API with optional transformation (e.g. units=pc1 for YoY %)."""
     url = f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=1"
+    if units:
+        url += f"&units={units}"
     try:
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, context=ctx, timeout=10) as resp:
@@ -126,7 +128,7 @@ def fetch_fred_latest(series_id):
             if 'observations' in data and len(data['observations']) > 0:
                 obs = data['observations'][0]
                 val = obs.get('value', '.')
-                if val != '.':
+                if val != '.' and val != '':
                     return {'value': float(val), 'date': obs['date']}
     except Exception as e:
         print(f"[WARN] FRED fetch failed for {series_id}: {e}")
@@ -135,18 +137,18 @@ def fetch_fred_latest(series_id):
 FRED_CENTRAL_BANK_SERIES = {
     'USA': {'rate': 'DFEDTARU', 'cpi': 'CPIAUCSL', 'tenYear': 'DGS10', 'balanceSheet': 'WALCL'},
     'EMU': {'rate': 'ECBMRRFR', 'cpi': 'CP0000EZ19M086NEST', 'tenYear': 'IRLTLT01DEM156N'},
-    'JPN': {'rate': 'IRSTCI01JPM156N', 'cpi': 'JPNCPIALLMINMEI', 'tenYear': 'IRLTLT01JPM156N'},
-    'GBR': {'rate': 'BOEIGBR', 'cpi': 'GBRCPIALLMINMEI', 'tenYear': 'IRLTLT01GBM156N'},
-    'CHN': {'rate': 'INTDSRCNM193N', 'cpi': 'CHNCPIALLMINMEI'},
-    'IND': {'rate': 'INTDSRINM193N', 'cpi': 'INDCPIALLMINMEI'},
-    'BRA': {'rate': 'INTDSRBRM193N', 'cpi': 'BRACPIALLMINMEI'},
-    'CHE': {'rate': 'INTDSRCHM193N'},
-    'AUS': {'rate': 'INTDSRAUM193N'},
-    'CAN': {'rate': 'INTDSRCAM193N'},
+    'JPN': {'rate': 'IRSTCI01JPM156N', 'tenYear': 'IRLTLT01JPM156N'},
+    'GBR': {'rate': 'IUDSOIA', 'cpi': 'GBRCPIALLMINMEI', 'tenYear': 'IRLTLT01GBM156N'},
+    'AUS': {'rate': 'IRSTCI01AUM156N'},
+    'CHE': {'rate': 'IRSTCI01CHM156N', 'cpi': 'CHECPIALLMINMEI'},
+    'IND': {'rate': 'IRSTCI01INM156N'},
+    'KOR': {'rate': 'IRSTCI01KRM156N'},
+    'BRA': {'rate': 'IRSTCB01BRM156N'},
+    'CAN': {'rate': 'IRSTCB01CAM156N', 'cpi': 'CANCPIALLMINMEI'},
 }
 
 def update_central_bank_rates(cb_rates_list):
-    """Update central bank rates from FRED API in-place."""
+    """Update central bank rates from FRED API in-place with freshness & validity guarantee."""
     updated = 0
     for cb in cb_rates_list:
         iso3 = cb['iso3']
@@ -157,31 +159,37 @@ def update_central_bank_rates(cb_rates_list):
 
         if 'rate' in series:
             result = fetch_fred_latest(series['rate'])
-            if result:
+            # Freshness guard: only update if data is recent (2024 or later)
+            if result and result['date'] >= '2024-01-01':
                 old = cb['rate']
                 cb['rate'] = round(result['value'], 2)
                 cb['lastChangeDate'] = result['date']
                 print(f"    ✅ Rate: {old}% → {cb['rate']}% (date: {result['date']})")
                 updated += 1
+            elif result:
+                print(f"    ℹ️ Rate: keeping modern official baseline {cb['rate']}% (FRED series ended {result['date']})")
 
+        # Fetch CPI YoY % (Percent Change from Year Ago using units=pc1)
         if 'cpi' in series:
-            result = fetch_fred_latest(series['cpi'])
-            if result:
-                cb['currentCpi'] = round(result['value'], 1) if result['value'] < 50 else round(result['value'], 1)
-                print(f"    ✅ CPI: {cb['currentCpi']}")
+            result = fetch_fred_latest(series['cpi'], units='pc1')
+            if result and result['date'] >= '2024-01-01' and -5.0 <= result['value'] <= 25.0:
+                cb['currentCpi'] = round(result['value'], 2)
+                print(f"    ✅ CPI (YoY Inflation): {cb['currentCpi']}% (date: {result['date']})")
+            elif result:
+                print(f"    ℹ️ CPI: keeping official baseline {cb['currentCpi']}%")
 
         if 'tenYear' in series:
             result = fetch_fred_latest(series['tenYear'])
-            if result:
+            if result and result['date'] >= '2024-01-01':
                 cb['tenYearYield'] = round(result['value'], 2)
-                print(f"    ✅ 10Y Yield: {cb['tenYearYield']}%")
+                print(f"    ✅ 10Y Yield: {cb['tenYearYield']}% (date: {result['date']})")
 
         if 'balanceSheet' in series:
             result = fetch_fred_latest(series['balanceSheet'])
-            if result:
+            if result and result['date'] >= '2024-01-01':
                 trillions = result['value'] / 1_000_000
                 cb['balanceSheet'] = f"${trillions:.2f}T"
-                print(f"    ✅ Balance Sheet: {cb['balanceSheet']}")
+                print(f"    ✅ Balance Sheet: {cb['balanceSheet']} (date: {result['date']})")
 
     return updated
 
