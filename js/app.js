@@ -44,6 +44,8 @@ class FactDashboardApp {
     this._renderActiveView();
     this._checkApiStatus();
 
+    if (window.lucide) window.lucide.createIcons();
+
     // Auto-refresh clock every second
     setInterval(() => this._updateClocks(), 1000);
   }
@@ -127,18 +129,66 @@ class FactDashboardApp {
   }
 
   _bindNavigation() {
+    const updateActiveNav = (target) => {
+      this.activeView = target;
+      document.querySelectorAll('[data-nav]').forEach(nav => {
+        if (nav.dataset.nav === target) {
+          nav.classList.add('active');
+        } else {
+          nav.classList.remove('active');
+        }
+      });
+      // Close mobile drawer if open
+      const drawer = document.getElementById('mobile-drawer-backdrop');
+      if (drawer) drawer.style.display = 'none';
+
+      // Scroll smoothly to top on mobile view changes
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      this._renderActiveView();
+    };
+
     document.querySelectorAll('[data-nav]').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const target = item.dataset.nav;
-        this.activeView = target;
-
-        document.querySelectorAll('[data-nav]').forEach(nav => nav.classList.remove('active'));
-        item.classList.add('active');
-
-        this._renderActiveView();
+        updateActiveNav(target);
       });
     });
+
+    // Mobile Drawer (More menu) controls
+    const moreMenuTrigger = document.getElementById('mobile-more-menu-trigger');
+    const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+    const drawerClose = document.getElementById('mobile-drawer-close');
+    const drawerPwaBtn = document.getElementById('mobile-drawer-pwa-btn');
+
+    if (moreMenuTrigger && drawerBackdrop) {
+      moreMenuTrigger.addEventListener('click', () => {
+        drawerBackdrop.style.display = 'flex';
+      });
+    }
+
+    if (drawerClose && drawerBackdrop) {
+      drawerClose.addEventListener('click', () => {
+        drawerBackdrop.style.display = 'none';
+      });
+    }
+
+    if (drawerBackdrop) {
+      drawerBackdrop.addEventListener('click', (e) => {
+        if (e.target === drawerBackdrop) {
+          drawerBackdrop.style.display = 'none';
+        }
+      });
+    }
+
+    if (drawerPwaBtn) {
+      drawerPwaBtn.addEventListener('click', () => {
+        if (drawerBackdrop) drawerBackdrop.style.display = 'none';
+        const pwaModal = document.getElementById('pwa-modal-backdrop');
+        if (pwaModal) pwaModal.style.display = 'flex';
+      });
+    }
 
     // Global Search Bar in Header
     const globalSearch = document.getElementById('global-fact-search');
@@ -150,8 +200,7 @@ class FactDashboardApp {
           if (match) {
             this.countryModal.show(match.iso3);
           } else {
-            this.activeView = 'macro';
-            this._renderActiveView();
+            updateActiveNav('macro');
           }
         }
       });

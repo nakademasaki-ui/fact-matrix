@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>FACT MATRIX | 一次情報・ファクトベース世界情勢＆経済ダッシュボード</title>
   <meta name="description" content="報道のバイアスや論評を排し、世界銀行、各国中央銀行、主要証券取引所、各国財務省、主要国際通信社（ロイター、新華社、タス、共同等）、国連公式記録の一次公表データのみを直接集約・可視化するファクトベースのインテリジェンス・ダッシュボード。">
   <meta name="keywords" content="一次情報, 経済指標, 国家バランスシート, 世界主要報道, 通信社, 株式市場, 中央銀行, 破綻確率, 政策金利, 国連決議, 世界銀行API, ファクトベース">
@@ -162,6 +162,119 @@
   <main class="main-container" id="main-content">
     <!-- Rendered dynamically by js/app.js -->
   </main>
+
+  <!-- Mobile Fixed Bottom Navigation Bar (Thumb friendly) -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="モバイルナビゲーション">
+    <button class="bottom-nav-item active" data-nav="overview">
+      <i data-lucide="layout-dashboard"></i>
+      <span>総合</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="news">
+      <i data-lucide="radio"></i>
+      <span>速報・報道</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="sovereign">
+      <i data-lucide="building-2"></i>
+      <span>財政・BS</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="stocks">
+      <i data-lucide="trending-up"></i>
+      <span>市場</span>
+    </button>
+    <button class="bottom-nav-item" id="mobile-more-menu-trigger">
+      <i data-lucide="menu"></i>
+      <span>全機能</span>
+    </button>
+  </nav>
+
+  <!-- Mobile Full Menu Drawer Modal -->
+  <div id="mobile-drawer-backdrop" class="modal-backdrop mobile-drawer-backdrop" style="display: none;">
+    <div class="mobile-drawer">
+      <div class="mobile-drawer-header">
+        <div class="brand-title">
+          <h3>全機能メニュー</h3>
+          <p>FACT MATRIX 一次データ</p>
+        </div>
+        <button class="modal-close-btn" id="mobile-drawer-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="mobile-drawer-body">
+        <div class="mobile-drawer-grid">
+          <button class="mobile-drawer-btn active" data-nav="overview">
+            <i data-lucide="layout-dashboard"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">総合ファクト</span>
+              <span class="drawer-btn-desc">世界主要統計・指標サマリー</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="news">
+            <i data-lucide="radio"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">世界主要報道・通信社</span>
+              <span class="drawer-btn-desc">ロイター・新華社・タス等一次速報</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="sovereign">
+            <i data-lucide="building-2"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">国家バランスシート</span>
+              <span class="drawer-btn-desc">日本の保有資産536兆円・負債T勘定</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="stocks">
+            <i data-lucide="trending-up"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">株式市場・指数</span>
+              <span class="drawer-btn-desc">主要市場・債券・コモディティ</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="balancesheet">
+            <i data-lucide="layers"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">中銀バランスシート・QT</span>
+              <span class="drawer-btn-desc">日銀・FRB・ECB 資産圧縮</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="macro">
+            <i data-lucide="landmark"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">政策金利・マクロ</span>
+              <span class="drawer-btn-desc">実質金利・インフレ・CPIマトリクス</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="charts">
+            <i data-lucide="line-chart"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">世銀時系列分析</span>
+              <span class="drawer-btn-desc">World Bank API直接連携チャート</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="geopolitics">
+            <i data-lucide="scale"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">国連決議・条約台帳</span>
+              <span class="drawer-btn-desc">安保理・総会 投票記録一次資料</span>
+            </div>
+          </button>
+          <button class="mobile-drawer-btn" data-nav="methodology">
+            <i data-lucide="shield-check"></i>
+            <div class="drawer-btn-info">
+              <span class="drawer-btn-title">原則・データソース</span>
+              <span class="drawer-btn-desc">報道非依存・Zero-Editorial基準</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="mobile-drawer-actions">
+          <button class="btn btn-refresh-sync" style="width: 100%; justify-content: center;" onclick="performFastSync(); document.getElementById('mobile-drawer-backdrop').style.display='none';">
+            <i data-lucide="refresh-cw"></i> 最新データに更新
+          </button>
+          <button class="btn btn-pwa-install" id="mobile-drawer-pwa-btn" style="width: 100%; justify-content: center; margin-top: 10px;">
+            <i data-lucide="smartphone"></i> ホーム画面に追加 (PWA)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- PWA Install Guidance Modal -->
   <div id="pwa-modal-backdrop" class="modal-backdrop" style="display: none;">
